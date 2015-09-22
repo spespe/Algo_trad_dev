@@ -465,7 +465,6 @@ object parseForModel
   var index_Low = 0;
   def addValueHigh( value : Double ) = 
   {
-      println("ADD VALUE " + value)
       if( valuesHigh.length < threeshold)
           valuesHigh.insert(index_High, value)
       else
@@ -481,16 +480,11 @@ object parseForModel
   def getStringHigh() = 
   {
       var ret = "10";
-      for( item <- valuesHigh)
-           if( ret.equals("10"))
-               ret = item+ "";
-            else
-               ret = ret + "," + item
-      ret  
+      values.map( item => if( ret.equals("10")) ret = item + ""; else ret = ret + "," + item );
+      ret   
   }
   def addValueLow( value : Double ) = 
   {
-      println("ADD VALUE " + value)
       if( valuesLow.length < threeshold)
           valuesLow.insert(index_Low, value)
       else
@@ -506,11 +500,7 @@ object parseForModel
   def getStringLow() = 
   {
       var ret = "10";
-      for( item <- valuesLow)
-           if( ret.equals("10"))
-               ret = item+ "";
-            else
-               ret = ret + "," + item
+      values.map( item => if( ret.equals("10")) ret = item + ""; else ret = ret + "," + item );
       ret  
   }
   def diffFromAvg(value : Double) = 
@@ -521,7 +511,6 @@ object parseForModel
   }
   def addValue( value : Double ) = 
   {
-      println("ADD VALUE " + value)
       if( values.length < threeshold)
           values.insert(index, value)
       else
@@ -539,11 +528,7 @@ object parseForModel
   def getString() = 
   {
       var ret = "10";
-      for( item <- values)
-           if( ret.equals("10"))
-               ret = item+ "";
-            else
-               ret = ret + "," + item
+      values.map( item => if( ret.equals("10")) ret = item + ""; else ret = ret + "," + item );
       ret  
   }
   def getOldHigh(): Double  =
@@ -700,7 +685,6 @@ object parseForModel
         //println( "SD " +average.getSD)
         if( avrHigh != -1  && values.length == threeshold && rsiCurrent != -1.0)
         {
-          /* TODO: Difference between MA and current price */
           val result = output + "," + hour + ","  + stringBullOrBear + "," + stringHigh + "," + stringLow +"," + rsiCurrent + "," + diffRsi + "," + will + "," + diffWill + "," + diffMA + "," + oldDiffMas;
           File("/home/edge7/Scrivania/AutoSystemTrading/historicalData/" + inputFile + "_model").appendAll(result + "\n")
 
