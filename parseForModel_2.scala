@@ -685,7 +685,7 @@ object parseForModel
         //println( "SD " +average.getSD)
         if( avrHigh != -1  && values.length == threeshold && rsiCurrent != -1.0)
         {
-          val result = output + "," + hour + ","  + stringBullOrBear + "," + stringHigh + "," + stringLow +"," + rsiCurrent + "," + diffRsi + "," + will + "," + diffWill + "," + diffMA + "," + oldDiffMas;
+          val result = output + "," + hour + ","  + stringBullOrBear + "," + stringHigh + "," + stringLow +"," + rsiCurrent + "," + diffRsi + "," + diffMA + "," + oldDiffMas;
           File("/home/edge7/Scrivania/AutoSystemTrading/historicalData/" + inputFile + "_model").appendAll(result + "\n")
 
         }
