@@ -126,15 +126,17 @@
 Simple conditions for BUY and SELL based on MA, RSI and price level.
  */ 
     //---SELL  
-    if(hArr[0].high > ma[0] && hArr[0].high - ma[0] >= 0.200 &&       
-    rsi[0] > 52 &&  hArr[0].low > hArr[300].low 
+    if(hArr[0].high - ma[0] >= 0.200 &&       
+    rsi[0] > 52 
+    //&&  hArr[0].low > hArr[300].low 
     ){ 
        signal = ORDER_TYPE_SELL; 
        } 
      
     //---BUY 
-    if(hArr[0].high < ma[0] && hArr[0].low - ma[0] <= -0.200 &&       
-    rsi[0] < 48 && hArr[0].high < hArr[300].high 
+    if(hArr[0].low - ma[0] <= -0.200 &&       
+    rsi[0] < 48 
+    //&& hArr[0].high < hArr[300].high 
     ){ 
        signal = ORDER_TYPE_BUY; 
        } 
