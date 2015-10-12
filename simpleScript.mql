@@ -240,7 +240,7 @@
        CheckForOpen(); 
  //--- 
    } 
-   //The OnDeinit function not used here.. 
+   //The OnDeinit function is not used here.. 
  //+------------------------------------------------------------------+ 
  //| Expert deinitialization function                                 | 
  //+------------------------------------------------------------------+ 
