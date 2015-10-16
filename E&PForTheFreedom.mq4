@@ -1,20 +1,20 @@
 //+------------------------------------------------------------------+
 //|                                             E&PForTheFreedom.mq4 |
-//|                        Copyright 2014, Enrico & Pietruzzo |
-//|                                               |
+//|                        Enrico & Pietro                           | 
+//|                                                                  |
 //+------------------------------------------------------------------+
 #property copyright "Copyright 2014, MetaQuotes Software Corp."
 #property link      "http://www.mql5.com"
 #property version   "1.00"
 #property strict
 input int    MovingPeriod  = 190;
-input int    MovingShift   = 6;  
-int StopLoss = 120; 
-int TakeProfit = 120; 
+input int    MovingShift   = 0;  //Changed to 0, we don't need the shift in this case.(??maybe after??)
+int StopLoss = 30; //In our first strategy we can change this value to 30, then we need to change it. 
+int TakeProfit = 100; //Same than before
 int ticket = 0;
 bool openedOrder = false;
-double RSI_SELL = 55;
-double RSI_BUY = 40;
+double RSI_SELL = 56; //I have to insert the code for closing the positions opened without take profit. I can explain this passage in the next steps.
+double RSI_BUY = 44;
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -33,7 +33,7 @@ void buy()
       else
       {  
          Print("OrderSend placed successfully");
-         Print("Hammer");
+         Print("Hammer"); //My favourite pattern!This is not the case!(??maybe copy-paste??)
               
       }
 }
@@ -48,7 +48,7 @@ void sell()
    if(ticket<0)
    {
       Print("OrderSend failed with error #",GetLastError());
-      Print("Hanging Man");
+      Print("Hanging Man"); //Ahahahah Hanging man
                       
    }
    else
