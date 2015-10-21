@@ -114,7 +114,7 @@ void OnTick()
           sell();
           return;
       }
-         if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedSell == true && (ma2 - ma) == -0.00400 )
+         if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedSell == true && (ma2 - ma) <= -0.00300 )
       {
          OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 100, clrNONE);
          //checkOpenedBuy = false;
@@ -132,7 +132,7 @@ void OnTick()
          buy();
          return;
       }
-               if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedBuy == true && (ma2 - ma) == 0.00400 )
+               if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedBuy == true && (ma2 - ma) >= 0.00300 )
       {
          OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 100, clrNONE);
          //checkOpenedBuy = false;
