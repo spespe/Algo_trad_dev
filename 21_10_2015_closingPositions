@@ -114,6 +114,7 @@ void OnTick()
           sell();
           return;
       }
+      //Added the OrderSelect method to close the position opened
          if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedSell == true && (ma2 - ma) <= -0.00300 )
       {
          OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 100, clrNONE);
@@ -132,6 +133,7 @@ void OnTick()
          buy();
          return;
       }
+      //Added the OrderSelect method to close the position opened
                if( OrdersTotal() != 0 && OrderSelect(0, SELECT_BY_POS) && checkOpenedBuy == true && (ma2 - ma) >= 0.00300 )
       {
          OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 100, clrNONE);
