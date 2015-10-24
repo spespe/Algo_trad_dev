@@ -1,0 +1,215 @@
+//+------------------------------------------------------------------+
+//|                                             E&PForTheFreedom.mq4 |
+//|                        Enrico & Pietro                           | 
+//|                                                                  |
+//+------------------------------------------------------------------+
+#property copyright "Copyright 2014, MetaQuotes Software Corp."
+#property link      "http://www.mql5.com"
+#property version   "1.00"
+#property strict
+input int    MovingPeriod  = 190;
+input int    MovingPeriod2 = 50;
+input int    MovingShift   = 0;  //Changed to 0, we don't need the shift in this case.(??maybe after??)
+int StopLoss = 500; //In our first strategy we can change this value to 30, then we need to change it. 
+int TakeProfit = 1000; //Same than before
+//int ticket = 0;
+bool openedOrderBuy = false;
+bool openedOrderSell = false;
+double RSI_SELL = 53; //I have to insert the code for closing the positions opened without take profit. I can explain this passage in the next steps.
+double RSI_BUY = 47;
+double lot = 0.050;
+double checkOpenedBuy = false;
+double checkOpenedSell = false;
+bool up = false;
+bool down = false;
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+/*    Buy function,it gets Take Profit and Stop Loss as global parameters, please look at the beginning of this file */
+void buy()
+{     
+      double vbid    = MarketInfo(Symbol(),MODE_BID);
+      double TP_b = NormalizeDouble(vbid + Point * TakeProfit , Digits); 
+      double SL_b = NormalizeDouble(vbid -  Point * StopLoss , Digits);
+      double vask    = MarketInfo(Symbol(),MODE_ASK);             
+      int ticket = OrderSend(Symbol(), OP_BUY, lot, vask, 2, SL_b, TP_b, "Buy Order" , 0, 0 , clrGreen);
+      if(ticket < 0)
+      {  
+         Print("OrderSend failed with error #",GetLastError());
+      }
+      else
+      {  
+      //openedOrderBuy = True;
+         Print("OrderSend placed successfully");
+       checkOpenedBuy = true;
+}
+}
+/* Sell function,it gets Take Profit and Stop Loss as global parameters, please look at the beginning of this file */
+void sell()
+{
+   double vbid    = MarketInfo(Symbol(),MODE_BID);
+   double vask    = MarketInfo(Symbol(),MODE_ASK);
+   double TP_s = NormalizeDouble(vask -  Point * TakeProfit , Digits);
+   double SL_s = NormalizeDouble(vask +  Point * StopLoss , Digits); 
+   int ticket = OrderSend(Symbol(), OP_SELL, 0.05, vbid, 2, SL_s, TP_s, "Sell order" , 0 , 0 , clrRed);
+   if(ticket<0)
+   {
+      Print("OrderSend failed with error #",GetLastError());
+      Print("Hanging Man"); //Ahahahah Hanging man
+                      
+   }
+   else
+   {  
+      Print("OrderSend placed successfully");
+      //openedOrderSell = True;
+       //double ma = iMA( NULL, 0, MovingPeriod, MovingShift, MODE_LWMA, PRICE_WEIGHTED, 0);
+       //double ma2 = iMA( NULL, 0, MovingPeriod2, MovingShift, MODE_LWMA, PRICE_WEIGHTED, 0);
+      checkOpenedSell = true;
+   }
+}
+int OnInit()
+  {
+//--- create timer
+   EventSetTimer(60);
+      
+//---
+   return(INIT_SUCCEEDED);
+  }
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+  {
+//--- destroy timer
+   EventKillTimer();
+      
+  }
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+  {
+//---
+      
+      
+
+      if(Volume[0] > 1) return;
+      
+      //--- get Moving Average 
+       //double priceHigh = iHigh(NULL, PERIOD_M5, 0);
+       //double priceLow = iLow(NULL, PERIOD_M5, 0);
+       double ma = iMA( NULL, 0, MovingPeriod, MovingShift, MODE_LWMA, PRICE_WEIGHTED, 0);
+       double ma2 = iMA( NULL, 0, MovingPeriod2, MovingShift, MODE_LWMA, PRICE_WEIGHTED, 0);
+       //double bears = iBearsPower( _Symbol, 5, 50, PRICE_WEIGHTED, 0);
+       //double bulls = iBullsPower( _Symbol, 5, 50, PRICE_WEIGHTED, 0);
+       double rsi = iRSI(NULL, 0, 50, PRICE_WEIGHTED, 0);
+
+//      double changeTrend = NormalizeDouble(ma + Point * 30 , Digits);
+  //    double changeTrend2 = NormalizeDouble(ma -  Point * 30, Digits);       
+      //--- sell conditions
+      /* Price cross up MA and RSI > RSI_SELL ====> SELL */
+      double current_price = MarketInfo(Symbol(), MODE_BID);
+  /*    
+   if(SymbolInfoTick(Symbol(),last_tick))
+     {
+      Print(last_tick.time,": Bid = ",last_tick.bid,
+            " Ask = ",last_tick.ask,"  Volume = ",last_tick.volume);
+     }
+   else Print("SymbolInfoTick() failed, error = ",GetLastError());
+*/
+
+ //     if(SymbolInfoTick(Symbol(), lastTick)){
+   //         Print("LAST TICK ASK: " + lastTick.last);
+      if( MarketInfo(Symbol(),MODE_BID) >= (double)(ma+0.00300) )
+      { 
+         up = true;
+         down = false;
+         Print("UP TREND!!");
+      }
+      
+      if( MarketInfo(Symbol(),MODE_BID) <= (double)(ma-0.00300) ) 
+      {
+         up = false;
+         down = true;
+         Print("DOWN TREND!!");
+      }
+     // }
+      if( 
+      //(ma2 < ma) 
+      // High[1] <= openSell 
+       OrdersTotal() == 0 
+      && (rsi > RSI_SELL)
+      && (current_price > ma && current_price <= (double)(ma+0.00290))
+      //&& (iRSI(NULL, PERIOD_H1, 50, PRICE_WEIGHTED, 0) < 58)
+      && down == true
+       //&& iHighest(NULL, PERIOD_M5, MODE_HIGH, 5, 0) > ma
+       )
+      //&& bulls < 0
+      {
+          sell();
+          //Print("The high of the bar is: " + (string)priceHigh);
+          //Print("The low of the bar is: " + (string)priceLow);
+          return;
+      }
+         if( OrdersTotal() != 0 
+         //&& ( OrderSelect(0, SELECT_BY_POS) && checkOpenedSell == true ) 
+         && ( MarketInfo(Symbol(), MODE_ASK) >= (double)(ma+0.00300) ))//|| rsi < 39 )) //|| ((High[0] - ma) >= 0.00300)) )
+      {
+      if(OrderSelect(0, SELECT_BY_POS) == true )
+         {
+         if(OrderType() == 1){
+         bool ans2 = OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 90, clrWhite);
+         //checkOpenedBuy = false;
+         if(!ans2)
+         {
+            Print("NOT CLOSED!! " + (string)GetLastError());
+         }
+         }
+         }
+      }
+   
+//--- buy conditions
+      /* Price cross down MA and RSI < 40 ====> RSI_BUY   */
+      if( //
+      //(ma2 > ma) 
+      //Low[0] >= openBuy 
+      OrdersTotal() == 0 
+      && (rsi < RSI_BUY) 
+      && (current_price < ma && current_price >= (double)(ma-0.00290))
+      && up == true
+      //&& (iRSI(NULL, PERIOD_H1, 50, PRICE_WEIGHTED, 0) > 42)
+      //&& iLowest(NULL, PERIOD_M5, MODE_HIGH, 20, 0) < ma
+      )
+      //&& bears > 0
+      {
+         buy();
+         return;
+      }
+               if( OrdersTotal() != 0 
+               //&& ( OrderSelect(0, SELECT_BY_POS) && checkOpenedBuy == true ) 
+               && ( MarketInfo(Symbol(),MODE_BID) <= (double)(ma-0.00300) ))//|| rsi > 61 ) )// || ((Low[0] - ma) <= -0.00300)) )
+      {
+      if(OrderSelect(0, SELECT_BY_POS) == true ){
+      if(OrderType() == 0)
+      {
+         bool ans = OrderClose(OrderTicket(), NormalizeDouble(lot,2) , MarketInfo(Symbol(), MODE_ASK), 90, clrWhite);
+         //checkOpenedBuy = false;
+         if(!ans)
+         {
+            Print("NOT CLOSED!! " + (string)GetLastError());
+         }
+         }
+         }
+
+      }
+      
+  }
+//+------------------------------------------------------------------+
+//| Timer function                                                   |
+//+------------------------------------------------------------------+
+void OnTimer()
+  {
+//---
+   
+  }
+//+------------------------------------------------------------------+
