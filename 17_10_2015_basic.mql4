@@ -21,6 +21,7 @@ double RSI_SELL = 57; //I have to insert the code for closing the positions open
 double RSI_BUY = 43;
 double last_price = 0; 
 double lot = 0.05;
+
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
 //+------------------------------------------------------------------+
@@ -158,7 +159,6 @@ void OnTick()
       ma = iMA( NULL, 0, MovingPeriod, MovingShift, MODE_SMMA, PRICE_WEIGHTED, 0);
        
       //--- sell conditions
-      /* Price cross up MA and RSI > RSI_SELL ====> SELL */
       if( openedOrderSell == false && last_price < ma && current_price > ma && iRSI(NULL, 0, 50, PRICE_WEIGHTED, 1) > RSI_SELL )
       {
           sell();
@@ -167,7 +167,6 @@ void OnTick()
       
       //--- buy conditions
       //
-      /* Price cross down MA and RSI < 40 ====> RSI_BUY   */
       if( openedOrderBuy == false && last_price > ma && current_price < ma && iRSI(NULL, 0, 50, PRICE_WEIGHTED, 1) < RSI_BUY)
       {
       
@@ -177,15 +176,3 @@ void OnTick()
       }
       last_price = current_price;      
       
-      
-   
-  }
-//+------------------------------------------------------------------+
-//| Timer function                                                   |
-//+------------------------------------------------------------------+
-void OnTimer()
-  {
-//---
-   
-  }
-//+------------------------------------------------------------------+
