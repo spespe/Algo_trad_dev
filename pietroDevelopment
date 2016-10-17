@@ -1,0 +1,183 @@
+//+------------------------------------------------------------------+
+//|                                                                  |
+//|                        Pietro  		                              | 
+//|                                                                  |
+//+------------------------------------------------------------------+
+#property copyright "Copyright Pietro Testing"
+#property link      "http://www.mql5.com"
+#property version   "1.00"
+#property strict
+
+int StopLoss = 300; 
+int TakeProfit = 800; 
+double MaximumRisk = 0.02;
+double lot = NormalizeDouble(AccountEquity()*MaximumRisk/StopLoss/(MarketInfo(Symbol(), MODE_TICKVALUE)),2);
+double checkOpenedBuy = false;
+double checkOpenedSell = false;
+datetime start_date=TimeCurrent();
+
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+
+
+void buy_GBP()
+{     
+      double vbid    = MarketInfo(Symbol(),MODE_BID);
+      double TP_b = NormalizeDouble(vbid + Point * TakeProfit , Digits); 
+      double SL_b = NormalizeDouble(vbid -  Point * StopLoss , Digits);
+      double vask    = MarketInfo(Symbol(),MODE_ASK);             
+      int ticket = OrderSend("GBPUSD", OP_BUY, 0.1, vask, 2, SL_b, TP_b, "Buy Order" , 0, 0 , clrGreen);
+      if(ticket < 0)
+      {  
+         Print("OrderSend failed with error #",GetLastError());
+      }
+      else
+      {  
+         Print("OrderSend placed successfully");
+       checkOpenedBuy = true;
+}
+}
+/* Sell function,it gets Take Profit and Stop Loss as global parameters, please look at the beginning of this file */
+void sell_GBP()
+{//(NormalizeDouble(AccountEquity()*MaximumRisk/StopLoss/(MarketInfo(Symbol(), MODE_TICKVALUE)),2))
+   double vbid    = MarketInfo(Symbol(),MODE_BID);
+   double vask    = MarketInfo(Symbol(),MODE_ASK);
+   double TP_s = NormalizeDouble(vask -  Point * TakeProfit , Digits);
+   double SL_s = NormalizeDouble(vask +  Point * StopLoss , Digits); 
+   int ticket = OrderSend("GBPUSD", OP_SELL, 0.1, vbid, 2, SL_s, TP_s, "Sell order" , 0 , 0 , clrRed);
+   if(ticket<0)
+   {
+      Print("OrderSend failed with error #",GetLastError());                      
+   }
+   else
+   {  
+      Print("OrderSend placed successfully");
+      checkOpenedSell = true;
+   }
+}
+
+
+void buy_EUR()
+{     
+      double vbid    = MarketInfo(Symbol(),MODE_BID);
+      double TP_b = NormalizeDouble(vbid + Point * TakeProfit , Digits); 
+      double SL_b = NormalizeDouble(vbid -  Point * StopLoss , Digits);
+      double vask    = MarketInfo(Symbol(),MODE_ASK);             
+      int ticket = OrderSend(Symbol(), OP_BUY, 0.1, vask, 2, SL_b, TP_b, "Buy Order" , 0, 0 , clrGreen);
+      if(ticket < 0)
+      {  
+         Print("OrderSend failed with error #",GetLastError());
+      }
+      else
+      {  
+         Print("OrderSend placed successfully");
+       checkOpenedBuy = true;
+}
+}
+/* Sell function,it gets Take Profit and Stop Loss as global parameters, please look at the beginning of this file */
+void sell_EUR()
+{//(NormalizeDouble(AccountEquity()*MaximumRisk/StopLoss/(MarketInfo(Symbol(), MODE_TICKVALUE)),2))
+   double vbid    = MarketInfo(Symbol(),MODE_BID);
+   double vask    = MarketInfo(Symbol(),MODE_ASK);
+   double TP_s = NormalizeDouble(vask -  Point * TakeProfit , Digits);
+   double SL_s = NormalizeDouble(vask +  Point * StopLoss , Digits); 
+   int ticket = OrderSend(Symbol(), OP_SELL, 0.1, vbid, 2, SL_s, TP_s, "Sell order" , 0 , 0 , clrRed);
+   if(ticket<0)
+   {
+      Print("OrderSend failed with error #",GetLastError());                      
+   }
+   else
+   {  
+      Print("OrderSend placed successfully");
+      checkOpenedSell = true;
+   }
+}
+
+int OnInit()
+  {
+//--- create timer
+   EventSetTimer(60);
+      
+//---
+   return(INIT_SUCCEEDED);
+  }
+
+//+------------------------------------------------------------------+
+//| Expert tick function                                             |
+//+------------------------------------------------------------------+
+void OnTick()
+  {
+//---
+      
+      if(Volume[0] > 1) return;
+       double current_price = MarketInfo(Symbol(), MODE_ASK);
+       
+//------------------------------------------------------------------------------------------------------------------------
+
+     if(OrderSelect(0, SELECT_BY_POS)){
+     if(OrderSymbol()=="EURUSD"){
+        if(OrderType() == OP_SELL){
+              if(
+              
+              (current_price - iLow(Symbol(),PERIOD_M5,iLowest(Symbol(),PERIOD_M5,MODE_LOW,Bars(Symbol(), PERIOD_M5, start_date, TimeCurrent())))) > 0.0040
+
+              ){
+               bool ans3 = OrderClose(OrderTicket(), OrderLots(), MarketInfo(Symbol(), MODE_ASK), 90, clrWhite);
+               
+               if(!ans3){
+                           Print("NOT CLOSED!! " + (string)GetLastError());
+                        }
+           }
+        }
+        
+     if(OrderType() == OP_BUY){
+           if(
+           (iHigh(Symbol(),PERIOD_M5,iHighest(Symbol(),PERIOD_M5,MODE_HIGH,Bars(Symbol(), PERIOD_M5, start_date, TimeCurrent()))) - current_price) > 0.0040
+           
+           ){  
+               bool ans3 = OrderClose(OrderTicket(), OrderLots(), MarketInfo(Symbol(), MODE_ASK), 90, clrWhite);
+               if(!ans3){
+                           Print("NOT CLOSED!! " + (string)GetLastError());
+                        }
+           }
+        }
+     }
+     }
+     
+     
+     
+
+
+
+  // if(up==true){
+      if(OrderSelect(0, SELECT_BY_POS)==false ){
+         if(
+         current_price < iMA(Symbol(),NULL,50,0,MODE_LWMA, PRICE_WEIGHTED, 0 ) - 0.0020
+         &&
+         iMomentum(Symbol(),PERIOD_M5,50,PRICE_WEIGHTED,0)<99.90
+         &&
+         iRSI(Symbol(),PERIOD_M5,50,PRICE_WEIGHTED,0)>50
+         
+         //iRSI("EURUSD",PERIOD_M5,50,PRICE_WEIGHTED,0)>iRSI("AUDUSD",PERIOD_M5,50,PRICE_WEIGHTED,0)+0.12
+         ){
+            buy_EUR();
+            start_date=TimeCurrent();
+         }
+      }
+
+      if(OrderSelect(0, SELECT_BY_POS)==false ){
+         if(
+         current_price > iMA(Symbol(),NULL,50,0,MODE_LWMA, PRICE_WEIGHTED, 0) + 0.0020
+         &&
+         iMomentum(Symbol(),PERIOD_M5,50,PRICE_WEIGHTED,0)>100.20
+         &&
+         iRSI(Symbol(),PERIOD_M5,50,PRICE_WEIGHTED,0)<50
+         //(iLow(Symbol(),PERIOD_M5,iLowest(Symbol(),PERIOD_M5,MODE_LOW,Bars(Symbol(), PERIOD_M5, start_date, TimeCurrent()))) - current_price) < -0.0050
+         ){
+            sell_EUR();
+            start_date=TimeCurrent();
+         }
+      }
+}
