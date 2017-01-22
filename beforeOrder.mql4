@@ -1,0 +1,155 @@
+double sl, tp, entry;
+void beforeorder(int cmd)
+{
+   if (ordertype_select(ORDERSELECT_MARKET,cmd)) entry = 0; 
+
+   sl = stoploss==0?0:getstoplossprice(symbol,(ENUM_ORDER_TYPE)cmd,stoploss,entry);
+   tp = takeprofit==0?0:gettakeprofitprice(symbol,(ENUM_ORDER_TYPE)cmd,takeprofit,entry);
+         
+   if (next_lotsize == 0) next_lotsize = minimum_lot;         
+    if (next_lotsize > maximum_lot) next_lotsize = minimum_lot;  
+         
+   if (money_management_active) lotsize = next_lotsize;
+         
+}
+
+void afterorder(int cmd, int ticket)
+{
+   
+}
+
+void open_market(int cmd)
+{
+   beforeorder(cmd);
+   COrder* _order = om.NewOrder(symbol,cmd,lotsize,0,sl,tp);
+   if (_order != NULL && _order.ticket >= 0) {
+      int ticket = _order.GetTicket();   
+   }
+   afterorder(cmd, ticket);
+}
+
+void open_pending(int cmd)
+{
+
+}
+
+void check_action(string action)
+{
+  #include <mtp_modules_2\orderscripts\actions.mqh>
+}
+
+#define EVENT_FAKETICK 222
+
+string eascript_currentaction = "";
+void OnChartEvent(const int id,        
+                  const long& lparam,   
+                  const double& dparam, 
+                  const string& sparam  
+                  )
+{
+   if (id == CHARTEVENT_CUSTOM+EVENT_FAKETICK) start();
+  
+   if (id == CHARTEVENT_CUSTOM+EASCRIPT_EVENT_ID) {
+      eascript_currentaction = sparam;
+      start();
+      eascript_currentaction = "";
+   }
+}
+
+int init()
+{
+   ontick_on_activity = ACTIVITY_CLOSE|ACTIVITY_DELETE|ACTIVITY_EXECUTE|ACTIVITY_STATECHANGE;
+   if (sl_virtual || tp_virtual || realstops_draw_line) ontick_on_activity = ontick_on_activity|ACTIVITY_CUSTOM1;
+ 
+   // EVENT HANGLING 
+   if (globaleventhandler == NULL) globaleventhandler = new CEventHandler();
+   event = globaleventhandler;
+   
+   // GLOBAL VARIABLES
+   symbolinfovars = new CSymbolInfoVars();
+   symbolinfovars.InitVars(Symbol());
+
+   // ORDER MANAGER
+   om = new COrderManagerExt();
+   ome = (COrderManagerExt*)om;
+   
+   om.magic = _magic;
+   om.sl_virtual = sl_virtual;
+   om.tp_virtual = tp_virtual;
+   om.retrainhistory = 1;
+   
+   // ORDER
+   COrderBase::magic_default = _magic;
+   COrder::sl_virtual_default = sl_virtual;
+   COrder::tp_virtual_default = tp_virtual;
+   COrder::vstops_draw_line = vstops_draw_line;
+   COrder::realstops_draw_line = realstops_draw_line;   
+
+   // TRADE
+   if (COrderBase::trade_default == NULL) COrderBase::trade_default = new CTrade();
+   if (IsTesting() && !IsVisualMode()) COrderBase::trade_default.LogLevel(LOG_LEVEL_ERRORS);
+   else COrderBase::trade_default.LogLevel(LOG_LEVEL_ALL);   
+   COrderBase::trade_default.SetColors(cl_buy, cl_sell);
+   COrderBase::trade_default.SetDeviationInPoints(slippage);
+   COrderBase::trade_default.SetIsEcn(orderbymarket);    
+      
+   // SIGNAL_HANDLER
+   if (signalhandler == NULL) signalhandler = new CSignalHandler(symbol,(ENUM_TIMEFRAMES)timeframe);   
+   signalhandler.oneperbar = oneperbar;
+   signalhandler.trade_on_start = trade_on_start;
+   signalhandler.comments_enabled = true;
+   signalhandler.trade_only_firsttick = trade_only_firsttick;
+   signalhandler.trade_only_signal_change = trade_only_signal_change;
+   signalhandler.comments_enabled = comments_enabled;
+   signalhandler.reverse_strategy = reverse_strategy;
+
+   // OPTIMIZATION FOR TESTING
+   if (IsTesting() && !IsVisualMode()) {      
+      globaleventhandler.SetLogLevel(E_ERROR);
+      scripts_enabled = false;
+      comments_enabled = false;
+   } else {
+      globaleventhandler.SetLogLevel(E_NOTICE|E_WARNING|E_ERROR|E_INFO);
+      run_signal_only_firsttick = false;
+   }
+
+   // FRACTIONAL PRICING
+   if (_symbol.IsFractional())
+   {
+      fractd(stoploss);
+      fractd(takeprofit);
+      slippage = slippage*10;
+      //TrailingStop.Fract();
+      fractd(dist_from_ma2);
+      fractd(max_dist_from_ma2); 
+      fractd(dist_from_ma3);
+      fractd(max_dist_from_ma3); 
+   }
+
+   // STORE OPEN ORDERS
+   for (int i = OrdersTotal()-1; i >= 0; i--) {
+      if (OrderSelect(i,SELECT_BY_POS,MODE_TRADES)) {
+         COrder* exord;
+         exord = om.ExistingOrder(OrderTicket());
+         if (exord != NULL) {  
+            if (!check_order(exord)) {
+               int idx = om.GetIdxByTicket(exord.GetTicket());
+               if (idx >= 0)
+                  om.orders.Delete(idx);
+            }            
+         } else {
+            //Print("Order Adding Failed");
+         }
+      }
+   }
+   om.AssignAttachedOrders();
+
+   #include <mtp_modules_2\orderscripts\init.mqh>
+
+   return(0);
+}
+
+int deinit()
+{
+   return(0);
+}
